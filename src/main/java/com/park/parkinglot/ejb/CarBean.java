@@ -5,7 +5,9 @@
 package com.park.parkinglot.ejb;
 
 import com.park.parkinglot.common.CarDetails;
+import com.park.parkinglot.common.PhotoDetails;
 import com.park.parkinglot.entity.Car;
+import com.park.parkinglot.entity.Photo;
 import com.park.parkinglot.entity.User;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +17,7 @@ import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
 
 @Stateless
 public class CarBean {
@@ -83,5 +86,25 @@ public class CarBean {
             Car car=em.find(Car.class,id);
             em.remove(car);
         }
+    }
+    
+    public void addPhotoToCar(Integer carId,String fileName,String fileType,byte[] fileContent){
+        Photo photo=new Photo();
+        photo.setFileName(fileName);
+        photo.setFileType(fileType);
+        photo.setFileContent(fileContent);
+        Car car=em.find(Car.class,carId);
+        car.setPhoto(photo);
+        photo.setCar(car);
+        em.persist(photo);
+    }
+    public PhotoDetails finPhotoByCarId(Integer carId){
+        TypedQuery<Photo> typedQuery=em.createQuery("SELECT p FROM Photo p WHERE p.car.id=:id",Photo.class).
+                                                    setParameter("id",carId);
+        List<Photo> photos=typedQuery.getResultList();
+        if(photos.isEmpty())
+            return null;
+        Photo photo=photos.get(0);
+        return new PhotoDetails(photo.getId(),photo.getFileName(),photo.getFileType(),photo.getFileContent());
     }
 }
