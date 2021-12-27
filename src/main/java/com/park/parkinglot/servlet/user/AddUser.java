@@ -2,16 +2,13 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
  */
-package com.park.parkinglot.servlet;
+package com.park.parkinglot.servlet.user;
 
-import com.park.parkinglot.common.CarDetails;
-import com.park.parkinglot.ejb.CarBean;
+import com.park.parkinglot.ejb.UserBean;
+import com.park.parkinglot.util.PasswordUtil;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.List;
 import javax.annotation.security.DeclareRoles;
-import javax.ejb.EJB;
 import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.HttpConstraint;
@@ -25,19 +22,17 @@ import javax.servlet.http.HttpServletResponse;
  *
  * @author pascu
  */
-
-@DeclareRoles({"AdminRole","ClientRole"})
+@DeclareRoles({"AdminRole"})
 @ServletSecurity(
         value=@HttpConstraint(
                 rolesAllowed={"AdminRole"}
         )    
 )
-@WebServlet(name = "Cars", urlPatterns = {"/Cars"})
-public class Cars extends HttpServlet {
+@WebServlet(name = "AddUser", urlPatterns = {"/Users/Create"})
+public class AddUser extends HttpServlet {
 
     @Inject
-    private CarBean carBean;
-
+    UserBean userBean;
     /**
      * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
      * methods.
@@ -47,22 +42,6 @@ public class Cars extends HttpServlet {
      * @throws ServletException if a servlet-specific error occurs
      * @throws IOException if an I/O error occurs
      */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet Cars</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet Cars at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    }
 
     // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
     /**
@@ -76,14 +55,7 @@ public class Cars extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        //processRequest(request, response);
-        request.setAttribute("activePage", "Cars");
-        request.setAttribute("numberOfFreeParkingSpots", 10);
-
-        List<CarDetails> cars = carBean.getAllCars();
-        request.setAttribute("cars", cars);
-        request.getRequestDispatcher("/WEB-INF/pages/cars.jsp").forward(request, response);
+        request.getRequestDispatcher("/WEB-INF/pages/user/addUser.jsp").forward(request,response);
     }
 
     /**
@@ -97,16 +69,14 @@ public class Cars extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-
-        String[] carIdsAsString = request.getParameterValues("carIds");
-        if (carIdsAsString != null) {
-            List<Integer> carIds = new ArrayList<>();
-            for (String carIdAsString : carIdsAsString) {
-                carIds.add(Integer.parseInt(carIdAsString));
-            }
-            carBean.deleteCarsByIds(carIds);
-        }
-        response.sendRedirect(request.getContextPath()+ "/Cars");
+        String username=request.getParameter("username");
+        String email=request.getParameter("email");
+        String password=request.getParameter("password");
+        String position=request.getParameter("position");
+        
+        String passwordSha256=PasswordUtil.convertToSha256(password);
+        userBean.createUser(username,email,passwordSha256,position);
+        response.sendRedirect(request.getContextPath()+ "/Users");
     }
 
     /**
@@ -116,7 +86,7 @@ public class Cars extends HttpServlet {
      */
     @Override
     public String getServletInfo() {
-        return "Short description";
+        return "AddUser v1.0";
     }// </editor-fold>
 
 }

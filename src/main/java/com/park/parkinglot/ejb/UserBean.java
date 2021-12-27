@@ -38,6 +38,16 @@ public class UserBean {
             throw new EJBException(ex);
         }
     }
+    
+    public void createUser(String username,String email,String passwordSha256,String position)
+    {
+        User user=new User();
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPassword(passwordSha256);
+        user.setPosition(position);
+        em.persist(user);
+    }
 
     private List<UserDetails> copyUsersToDetails(List<User> users) {
         List<UserDetails> detailsList = new ArrayList();
